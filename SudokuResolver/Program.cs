@@ -23,7 +23,7 @@ namespace SudokuResolver
 {
     public class Program
     {
-        private static Dictionary<string, int> sudoku = new();
+        private static Dictionary<string, int> sudokuMatrix = new();
 
         private static void Main(string[] args)
         {
@@ -46,15 +46,20 @@ namespace SudokuResolver
         {
             Console.Clear();
 
+            /* Matrix 9x9 erstellen */
             InitializeMatrix();
+
+            /* Demo-Vorgabewerte laden */
             LoadDemoValues();
 
             Console.WriteLine("Start Sudoku:\n");
+            /* Matrix mit den Vorgabewerten ausgeben */
             PrintSudoku();
 
-            if (SolveSudoku())
+            if (SolveSudoku() == true)
             {
                 Console.WriteLine("\nGelöstes Sudoku:\n");
+                /* Matrix mit der vollständigen Lösung */
                 PrintSudoku();
             }
             else
@@ -65,19 +70,23 @@ namespace SudokuResolver
             ConsoleMenu.Wait();
         }
 
-        // 1. Matrix A1–I9 erzeugen
+        /// <summary>
+        /// 1. Matrix A1–I9 erzeugen
+        /// </summary>
         private static void InitializeMatrix()
         {
             for (char row = 'A'; row <= 'I'; row++)
             {
                 for (int col = 1; col <= 9; col++)
                 {
-                    sudoku[$"{row}{col}"] = 0;
+                    sudokuMatrix[$"{row}{col}"] = 0;
                 }
             }
         }
 
-        // 2. Demo-Vorgabewerte setzen
+        /// <summary>
+        /// 2. Demo-Vorgabewerte setzen
+        /// </summary>
         private static void LoadDemoValues()
         {
             Dictionary<string, int> demoValues = new()
@@ -126,72 +135,92 @@ namespace SudokuResolver
 
             foreach (var entry in demoValues)
             {
-                sudoku[entry.Key] = entry.Value % 10; // letzte Ziffer = Sudoku-Wert
+                sudokuMatrix[entry.Key] = entry.Value % 10; // letzte Ziffer = Sudoku-Wert
             }
         }
 
-        // 3. Backtracking-Solver
+        /// <summary>
+        /// 3. Backtracking-Solver
+        /// </summary>
+        /// <returns></returns>
         private static bool SolveSudoku()
         {
-            var emptyCell = sudoku.FirstOrDefault(c => c.Value == 0);
+            var emptyCell = sudokuMatrix.FirstOrDefault(c => c.Value == 0);
             if (emptyCell.Key == null)
                 return true;
 
             for (int num = 1; num <= 9; num++)
             {
-                if (IsValid(emptyCell.Key, num))
+                if (IsValid(emptyCell.Key, num) == true)
                 {
-                    sudoku[emptyCell.Key] = num;
+                    sudokuMatrix[emptyCell.Key] = num;
 
-                    if (SolveSudoku())
+                    if (SolveSudoku() == true)
+                    {
                         return true;
+                    }
 
-                    sudoku[emptyCell.Key] = 0;
+                    sudokuMatrix[emptyCell.Key] = 0;
                 }
             }
+
             return false;
         }
 
-        // Sudoku-Regeln prüfen
+        /// <summary>
+        /// Sudoku-Regeln prüfen
+        /// </summary>
+        /// <param name="cell">Zelle A1-I9</param>
+        /// <param name="value">Zelleninhalt</param>
+        /// <returns></returns>
         private static bool IsValid(string cell, int value)
         {
             char row = cell[0];
             int col = int.Parse(cell[1].ToString());
 
             // Zeile
-            if (sudoku.Any(c => c.Key[0] == row && c.Value == value))
+            if (sudokuMatrix.Any(c => c.Key[0] == row && c.Value == value))
+            {
                 return false;
+            }
 
             // Spalte
-            if (sudoku.Any(c => c.Key[1].ToString() == col.ToString() && c.Value == value))
+            if (sudokuMatrix.Any(c => c.Key[1].ToString() == col.ToString() && c.Value == value))
+            {
                 return false;
+            }
 
             // 3x3 Block
             int blockRow = (row - 'A') / 3;
             int blockCol = (col - 1) / 3;
 
-            foreach (var c in sudoku)
+            foreach (var c in sudokuMatrix)
             {
                 int r = (c.Key[0] - 'A') / 3;
                 int co = (int.Parse(c.Key[1].ToString()) - 1) / 3;
 
                 if (r == blockRow && co == blockCol && c.Value == value)
+                {
                     return false;
+                }
             }
 
             return true;
         }
 
-        // 4. Ausgabe
+        /// <summary>
+        /// 4. Ausgabe
+        /// </summary>
         private static void PrintSudoku()
         {
             for (char row = 'A'; row <= 'I'; row++)
             {
                 for (int col = 1; col <= 9; col++)
                 {
-                    int val = sudoku[$"{row}{col}"];
+                    int val = sudokuMatrix[$"{row}{col}"];
                     Console.Write(val == 0 ? ". " : val + " ");
                 }
+
                 Console.WriteLine();
             }
         }
